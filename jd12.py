@@ -56,6 +56,9 @@ else:
     print('看看放cookie没，自动退出')
     sys.exit()
 
+print('\n\n欢迎使用jd脚本\n')
+
+
 def get_user_name(headers):
     cookie = headers['Cookie'] if 'Cookie' in headers else 'None'
     try:
@@ -68,35 +71,6 @@ def get_user_name(headers):
         userName = r.findall(cookie)
         userName = parse.unquote(userName[0])
         return userName
-
-# 获取joytoken
-def get_joytoken(headers):
-    url = 'https://rjsb-token-m.jd.com/gettoken'
-    data = "content={\"appname\":\"50168\",\"whwswswws\":\"\",\"jdkey\":\"a\",\"body\":{\"platform\":\"1\",\"sceneid\":\"CXJAssist_h5\",\"hs\":\"AAD71C9\",\"version\":\"w4.0.5\"}}"
-    try:
-        res = requests.post(url, headers=headers,
-                            data=data, verify=False).json()
-        joytoken = res.get('joyytoken')
-        return joytoken
-    except Exception as e:
-        print(e)
-        return None
-
-print('\n\n欢迎使用jd脚本\n')
-
-def get_secretp(headers):
-    url = 'https://api.m.jd.com/client.action?advId=promote_getHomeData'
-    data = 'functionId=promote_getHomeData&client=m&clientVersion=-1&appid=signed_wh5&body={}'
-    try:
-        res = requests.post(url, data=data, headers=headers,
-                            verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
-            return res.get('data').get('result').get('homeMainInfo').get('secretp')
-        else:
-            print('初始化失败')
-            return None
-    except:
-        return None
 
 def get_ss():
     import random,string
@@ -119,7 +93,9 @@ def guangdian(taskId, taskToken, itemId, headers,actionType):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             print('进店成功')
             return res
         else:
@@ -142,7 +118,9 @@ def daka(taskId, taskToken, headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             print('任务成功')
             return res
         else:
@@ -165,12 +143,14 @@ def lingqu(taskToken, headers):
         'body': bodys,
     }
     try:
-        response = requests.post(url, headers=headers,
+        res = requests.post(url, headers=headers,
                                  data=data, verify=False, timeout=5).json()
-        if response.get('code') == '0':
-            print(response.get('toast').get('subTitle'))
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('code') == '0':
+            print(res.get('toast').get('subTitle'))
         else:
-            print('其他')
+            print(res.get('data').get('bizMsg'))
     except Exception as e:
         print(e)
 
@@ -181,9 +161,14 @@ def getFeedDetail(taskId, headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        productInfoVos = res.get('data').get('result').get(
-            'addProductVos')[0].get('productInfoVos')
-        return productInfoVos
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
+            productInfoVos = res.get('data').get('result').get(
+                'addProductVos')[0].get('productInfoVos')
+            return productInfoVos
+        else:
+            print(res.get('data').get('bizMsg'))
     except Exception as e:
         print(e)
 
@@ -194,9 +179,14 @@ def getFeedDetail1(taskId, headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        productInfoVos = res.get('data').get(
-            'result').get('taskVos')[0].get('browseShopVo')
-        return productInfoVos
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
+            productInfoVos = res.get('data').get(
+                'result').get('taskVos')[0].get('browseShopVo')
+            return productInfoVos
+        else:
+            print(res.get('data').get('bizMsg'))
     except Exception as e:
         print(e)
 
@@ -207,8 +197,13 @@ def getBadgeWard(awardToken, headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        myAwardVo = res.get('data').get('result').get('myAwardVos')[0]
-        return myAwardVo
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
+            myAwardVo = res.get('data').get('result').get('myAwardVos')[0]
+            return myAwardVo
+        else:
+            print(res.get('data').get('bizMsg'))
     except Exception as e:
         print(e)
 
@@ -220,7 +215,9 @@ def task_list(headers, data):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('code') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             taskVos = res.get('data').get('result')
             inviteId = taskVos.get("inviteId")
             if inviteId is not None and inviteId not in inviteId_temp_list:
@@ -230,7 +227,7 @@ def task_list(headers, data):
                 inviteIds.append(inviteId)
             return taskVos
         else:
-            print(res.get('msg'))
+            print(res.get('data').get('bizMsg'))
     except Exception as e:
         print(e)
 
@@ -250,10 +247,11 @@ def vxtask_list(headers, data):
                 browseShopVos = i.get('browseShopVo', '')
                 followShopVos = i.get('followShopVo', '')
                 simpleRecordInfoVos = i.get('simpleRecordInfoVo', '')
-                if taskId in [24, 28]:
+                if taskId in [24, 28, 31]:
                     print(f'>>>>>>[{get_user_name(headers)}]开始进行{taskTitle}任务')
                     taskToken = simpleRecordInfoVos.get('taskToken')
                     daka(taskId, taskToken, headers)
+                    time.sleep(sleep_times)
 
                 # shoppingActivityVos 需领取
                 if taskId in [3, 6, 8, 12, 33, 34, 35, 36, 61, 67]:  #
@@ -377,7 +375,9 @@ def jd_zhuli(inviteId, headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             print('助力成功')
         else:
             msg = res.get('data').get('bizMsg')
@@ -401,7 +401,9 @@ def raise_level(headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             print('提升等级成功')
             return True
         else:
@@ -424,7 +426,9 @@ def sign_today(headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             print('签到成功，获得金币' + res.get('data').get('result').get("scoreResult").get("score"))
             return res
         else:
@@ -447,14 +451,16 @@ def get_welfare_score(headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+        elif res.get('data').get('bizCode') == 0:
             print('分享成功，获得金币' + res.get('data').get('result').get("score"))
             return False
         else:
             print(res.get('data').get('bizMsg'))
-            return True
     except Exception as ex:
         print('分享错误：' + str(ex))
+    return True
 
 #收集金币
 def collect_auto_score(headers):
@@ -469,7 +475,10 @@ def collect_auto_score(headers):
     try:
         res = requests.post(url, headers=headers, data=data,
                             verify=False, timeout=5).json()
-        if res.get('data').get('bizCode') == 0:
+        if res.get('code') != 0:
+            print(res.get('msg'))
+            return True
+        elif res.get('data').get('bizCode') == 0:
             print('收集金币成功，获得金币' + res.get('data').get('result').get("produceScore"))
             return False
         else:
@@ -503,7 +512,6 @@ def main_task(cookie):
         'Referer': 'https://wbbny.m.jd.com/',
         'Cookie': cookie
     }
-    #joyToken = get_joytoken(headers)
     # cookie = cookie + ' __jdc=;  shshshfpb=iCYzgMuPxd0lWT0bD25ss3Q; shshshfpa=00eb2646-19ae-5a5f-6961-5aa1d5165af7-1659626436; __jdv=;   __jda=; shshshfp=16fb74bbcbfe6ac2788d637d0d8e3534; shshshsID=546a21f1fed27153f08f2ef39332bd2f_3_1666965134257; __jdb=; shshshfpv=; mba_sid=; joyytokem=; joyya=; mba_muid='
     headers['Cookie'] = cookie
     i = 0
@@ -516,11 +524,11 @@ def main_task(cookie):
         time.sleep(sleep_times)
         if exit:
             break
-    # while i < task_times:
-    #     # 京东app任务
-    #     jddata = 'functionId=promote_getTaskDetail&client=m&clientVersion=-1&appid=signed_wh5&body={"appSign":1,"taskId":""}'
-    #     vxtask_list(headers, jddata)
-    #     i += 1
+    while i < task_times:
+        # 京东app任务
+        jddata = 'functionId=promote_getTaskDetail&client=m&clientVersion=-1&appid=signed_wh5&body={"appSign":1,"taskId":""}'
+        vxtask_list(headers, jddata)
+        i += 1
 
     if auto_raise_level:
         result = raise_level(headers)
