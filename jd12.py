@@ -247,6 +247,7 @@ def vxtask_list(headers, data):
                 browseShopVos = i.get('browseShopVo', '')
                 followShopVos = i.get('followShopVo', '')
                 simpleRecordInfoVos = i.get('simpleRecordInfoVo', '')
+                brandMemberVos = i.get('brandMemberVos', '')
                 if taskId in [24, 28, 31]:
                     print(f'>>>>>>[{get_user_name(headers)}]开始进行{taskTitle}任务')
                     taskToken = simpleRecordInfoVos.get('taskToken')
@@ -346,13 +347,18 @@ def vxtask_list(headers, data):
                         time.sleep(sleep_times)
                 # 入会浏览
                 if taskId in [14, 15]:
-                    taskToken = i.get('simpleRecordInfoVo').get('taskToken')
-                    ii = 0
-                    while ii <= 4:
-                        ress = guangdian(5, taskToken, '', headers,1)
-                        ii += 1
-                        time.sleep(sleep_times)
-
+                    print(f'>>>>>>[{get_user_name(headers)}]开始进行{taskTitle}任务')
+                    for member in brandMemberVos:
+                        memberStatus = member.get('status')
+                        taskToken = member.get('taskToken')
+                        membertitle = member.get('title')
+                        itemId = member.get('itemId')
+                        if memberStatus == 1:
+                            print('任务“%s”' % membertitle)
+                            guangdian(taskId, taskToken, itemId, headers, 1)
+                            print('等待%s秒' % (waitDuration + sleep_times))
+                            time.sleep(int(waitDuration + sleep_times))
+                            lingqu(taskToken, headers)
             if status == 2:
                 print(taskTitle + '任务已完成')
         lotteryTaskVos = task_list(headers, data).get('lotteryTaskVos')
